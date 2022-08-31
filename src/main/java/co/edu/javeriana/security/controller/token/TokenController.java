@@ -1,13 +1,19 @@
 package co.edu.javeriana.security.controller.token;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
 import java.util.stream.Collectors;
@@ -19,7 +25,8 @@ public class TokenController {
     @Autowired
     JwtEncoder encoder;
 
-    @PostMapping("/token")
+    @GetMapping(value = "/token", produces = MediaType.APPLICATION_JSON_VALUE)
+    @CrossOrigin(origins = {"http://localhost:4200", "http://localhost:4200/"}, methods = {RequestMethod.OPTIONS, RequestMethod.GET})
     public String token(Authentication authentication) {
         Instant now = Instant.now();
         long expiry = 60L;
@@ -35,6 +42,13 @@ public class TokenController {
                 .claim("scope", scope)
                 .build();
         // @formatter:on
-        return this.encoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
+        ObjectNode json = new ObjectNode(new JsonNodeFactory(false));
+        json.put("token",this.encoder.encode(JwtEncoderParameters.from(claims)).getTokenValue());
+        return json.toPrettyString();
+    }
+
+    @RequestMapping(value = "/token", method = RequestMethod.OPTIONS)
+    public ResponseEntity options(){
+        return ResponseEntity.ok().header("Access-Control-Allow-Origin", "*").build();
     }
 }
