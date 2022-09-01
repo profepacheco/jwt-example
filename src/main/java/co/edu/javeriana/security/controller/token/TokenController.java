@@ -26,7 +26,6 @@ public class TokenController {
     JwtEncoder encoder;
 
     @GetMapping(value = "/token", produces = MediaType.APPLICATION_JSON_VALUE)
-    @CrossOrigin(origins = {"http://localhost:4200", "http://localhost:4200/"}, methods = {RequestMethod.OPTIONS, RequestMethod.GET})
     public String token(Authentication authentication) {
         Instant now = Instant.now();
         long expiry = 60L;
@@ -45,10 +44,5 @@ public class TokenController {
         ObjectNode json = new ObjectNode(new JsonNodeFactory(false));
         json.put("token",this.encoder.encode(JwtEncoderParameters.from(claims)).getTokenValue());
         return json.toPrettyString();
-    }
-
-    @RequestMapping(value = "/token", method = RequestMethod.OPTIONS)
-    public ResponseEntity options(){
-        return ResponseEntity.ok().header("Access-Control-Allow-Origin", "*").build();
     }
 }
