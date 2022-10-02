@@ -45,7 +45,7 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
                 .cors().and()
-                .csrf((csrf) -> csrf.ignoringAntMatchers("/token"))
+                .csrf((csrf) -> csrf.ignoringAntMatchers("/token").ignoringAntMatchers("/validate"))
                 .httpBasic(Customizer.withDefaults())
                 .oauth2ResourceServer(OAuth2ResourceServerConfigurer::jwt)
                 .sessionManagement((session) -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

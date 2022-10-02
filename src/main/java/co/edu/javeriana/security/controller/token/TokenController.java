@@ -6,14 +6,15 @@ import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.oauth2.jwt.JwtClaimsSet;
-import org.springframework.security.oauth2.jwt.JwtEncoder;
-import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
+import org.springframework.security.oauth2.jwt.*;
+import org.springframework.security.web.header.Header;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.function.ServerRequest;
 
 import java.time.Instant;
 import java.util.stream.Collectors;
@@ -24,6 +25,9 @@ public class TokenController {
 
     @Autowired
     JwtEncoder encoder;
+
+    @Autowired
+    JwtDecoder decoder;
 
     @GetMapping(value = "/token", produces = MediaType.APPLICATION_JSON_VALUE)
     public String token(Authentication authentication) {
@@ -44,5 +48,15 @@ public class TokenController {
         ObjectNode json = new ObjectNode(new JsonNodeFactory(false));
         json.put("token",this.encoder.encode(JwtEncoderParameters.from(claims)).getTokenValue());
         return json.toPrettyString();
+    }
+
+    @GetMapping("/validate")
+    public ResponseEntity validateFilter(@RequestHeader(value = "Authorization")String jwtToken){
+        Jwt token = decoder.decode(jwtToken.split(" ")[1]);
+        if(token.getExpiresAt().isAfter(Instant.now())) {
+            return ResponseEntity.ok().build();
+        }else{
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
     }
 }
